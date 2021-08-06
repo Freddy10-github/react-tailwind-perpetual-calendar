@@ -1,34 +1,45 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
 function App() {
   const [current, setCurrent] = useState(new Date());
-  const date = new Date(current.getFullYear(), current.getMonth(), 1);
-  let isReRender = useRef(0);
+
+  const dayStyleJudgement = (current, date) => {
+    if (current.getMonth() !== date.getMonth())
+      return `<li class="w-8 center text-center opacity-50">${date.getDate()}</li>`;
+    else if (
+      new Date().getDate() === date.getDate() &&
+      new Date().getMonth() === date.getMonth()
+    )
+      return `<li class="w-8 center text-center border">${date.getDate()}</li>`;
+    else return `<li class="w-8 center text-center">${date.getDate()}</li>`;
+  };
 
   useEffect(() => {
-    console.log(current);
     const daysContainer = document.querySelector("#days");
+    const date = new Date(current.getFullYear(), current.getMonth(), 1);
+
     let str = "";
+    //Render the last days of the previous month.
     date.setDate(date.getDate() - date.getDay());
-    while (current.getMonth() >= date.getMonth()) {
-      if (current.getMonth() > date.getMonth())
-        str += `<li class="w-8 center text-center opacity-50">${date.getDate()}</li>`;
-      else if (
-        current.getDate() === date.getDate() &&
-        current.getMonth() === date.getMonth()
-      )
-        str += `<li class="w-8 center text-center border">${date.getDate()}</li>`;
-      else str += `<li class="w-8 center text-center">${date.getDate()}</li>`;
+    while (date.getMonth() !== current.getMonth()) {
+      str += dayStyleJudgement(current, date);
       date.setDate(date.getDate() + 1);
     }
+    //Render this month
+    while (current.getMonth() === date.getMonth()) {
+      str += dayStyleJudgement(current, date);
+      date.setDate(date.getDate() + 1);
+    }
+    //Render the first few days of next month
     while (date.getDay() !== 0) {
-      str += `<li class="w-8 center text-center opacity-50">${date.getDate()}</li>`;
+      str += dayStyleJudgement(current, date);
       date.setDate(date.getDate() + 1);
     }
     daysContainer.innerHTML = str;
   }, [current]);
+
+  // append years and months option.
   useEffect(() => {
-    if (isReRender.current > 0) return;
     const yearsSelect = document.querySelector("#years");
     for (
       let i = new Date().getFullYear() - 20;
@@ -46,8 +57,8 @@ function App() {
         daysSelect.add(new Option(i + 1, i, 0, 1));
       else daysSelect.add(new Option(i + 1, i));
     }
-    isReRender.current += 1;
-  });
+  }, []);
+
   return (
     <div className="App">
       <h1 className="text-red-700">
@@ -56,9 +67,7 @@ function App() {
           id="years"
           onChange={(e) => {
             const date = new Date(e.target.value, current.getMonth());
-            // console.log(date)
             setCurrent(date);
-            // console.log(current)
           }}
         ></select>{" "}
         /
@@ -67,9 +76,7 @@ function App() {
           id="months"
           onChange={(e) => {
             const date = new Date(current.getFullYear(), e.target.value);
-            // console.log(date)
             setCurrent(date);
-            // console.log(current)
           }}
         ></select>
       </h1>
